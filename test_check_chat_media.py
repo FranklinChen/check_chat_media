@@ -13,7 +13,7 @@ def test_pic_expected_none():
     assert pic_expected('nothing') == []
 
 
-relative_chat_path = 'a/b/c'
+relative_chat_path = 'a/b/c/file.cha'
 
 media_root_dir = '/media'
 

@@ -1,5 +1,6 @@
 #!/usr/local/bin/python3
 
+import sys
 import os
 import click
 import subprocess
@@ -31,34 +32,39 @@ pic_re = re.compile(
 @click.option('--host', required=True, help='Host name of media')
 @click.option('--mediadir', required=True, help='Media root dir on host')
 def main(chatdir, host, mediadir):
+    """
+    Print errors to stdout.
+    """
     media_set = get_media_set(host, mediadir)
-    for message, media_type, name in all_media_errors(chatdir, mediadir, media_set):
-        print(f'{host}:{name}: {media_type} {message}')
-
+ 
+    num_errors = 0
+    for doc_errors in all_media_errors(chatdir, mediadir, media_set):
+        for message, media_type, name in doc_errors:
+            num_errors += 1
+            print(f'{host}:{mediadir}/{name}: {media_type} {message}')
+    if num_errors != 0:
+        sys.exit(1)
 
 
 def get_media_set(server, media_root_dir):
     """
-    Return absolute paths of mp3 and mp4 media files.
+    Return listing of media_root_dir.
     """
     result = subprocess.run(
         ['ssh',
          server,
          'find',
          media_root_dir,
-         '-name',
-         '*.mp[34]'],
+        ],
         stdout=subprocess.PIPE,
         encoding='utf-8'
     )
     result.check_returncode()
     return set(
         (
-            path.lstrip(media_root_dir)
-            for path in result.stdout.splitlines()
+            path.lstrip(media_root_dir) for path in result.stdout.splitlines()
         )
     )
-
 
 def all_chat_paths(data_orig_dir):
     for dir_path, dir_names, file_names in os.walk(data_orig_dir, True):
@@ -103,7 +109,8 @@ def chat_doc_errors(relative_chat_path, text, media_root_dir, media_set):
             errors.append(('impossible media type', media_type, name))
             continue
 
-        path = os.path.join(relative_chat_path, file)
+        relative_chat_dir = os.path.dirname(relative_chat_path)
+        path = os.path.join(relative_chat_dir, file)
         if not(path in media_set):
             errors.append(('missing', media_type, path))
 
