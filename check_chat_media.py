@@ -41,14 +41,14 @@ def main(chatdir, host, mediadir):
     for doc_errors in all_media_errors(chatdir, mediadir, media_set):
         for message, media_type, name in doc_errors:
             num_errors += 1
-            print(f'{host}:{mediadir}/{name}: {media_type} {message}')
+            print(f'{host}:{name}: {media_type} {message}')
     if num_errors != 0:
         sys.exit(1)
 
 
 def get_media_set(server, media_root_dir):
     """
-    Return listing of media_root_dir.
+    Return absolute path listing of media_root_dir.
     """
     result = subprocess.run(
         ['ssh',
@@ -60,11 +60,8 @@ def get_media_set(server, media_root_dir):
         encoding='utf-8'
     )
     result.check_returncode()
-    return set(
-        (
-            path.lstrip(media_root_dir) for path in result.stdout.splitlines()
-        )
-    )
+    return set(result.stdout.splitlines())
+
 
 def all_chat_paths(data_orig_dir):
     for dir_path, dir_names, file_names in os.walk(data_orig_dir, True):
@@ -110,7 +107,7 @@ def chat_doc_errors(relative_chat_path, text, media_root_dir, media_set):
             continue
 
         relative_chat_dir = os.path.dirname(relative_chat_path)
-        path = os.path.join(relative_chat_dir, file)
+        path = os.path.join(media_root_dir, relative_chat_dir, file)
         if not(path in media_set):
             errors.append(('missing', media_type, path))
 

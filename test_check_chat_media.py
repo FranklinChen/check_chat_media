@@ -18,10 +18,10 @@ relative_chat_path = 'a/b/c/file.cha'
 media_root_dir = '/media'
 
 media_set = set([
-    'a/b/x.mp3',
-    'a/b/c/y.mp4',
-    'a/b/c/j1.jpg',
-    'a/b/c/j2.jpg'
+    '/media/a/b/x.mp3',
+    '/media/a/b/c/y.mp4',
+    '/media/a/b/c/j1.jpg',
+    '/media/a/b/c/j2.jpg'
 ])
 
 many_text = """
@@ -49,5 +49,5 @@ def test_chat_doc_errors_good():
 
 def test_chat_doc_errors_missing_video():
     assert chat_doc_errors(relative_chat_path, missing_video_text, media_root_dir, media_set) == [
-        ('missing', 'video', 'a/b/c/x.mp4')
+        ('missing', 'video', '/media/a/b/c/x.mp4')
     ]
