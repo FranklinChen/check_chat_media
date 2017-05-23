@@ -35,10 +35,10 @@ def main(chatdir, host, mediadir):
     """
     Print errors to stdout.
     """
-    media_set = get_media_set(host, mediadir)
- 
+    media_dict = get_media_dict(host, mediadir)
+
     num_errors = 0
-    for doc_errors in all_media_errors(chatdir, mediadir, media_set):
+    for doc_errors in all_media_errors(chatdir, mediadir, media_dict):
         for message, media_type, name in doc_errors:
             num_errors += 1
             print(f'{host}:{name}: {media_type} {message}')
@@ -46,9 +46,9 @@ def main(chatdir, host, mediadir):
         sys.exit(1)
 
 
-def get_media_set(server, media_root_dir):
+def get_media_dict(server, media_root_dir):
     """
-    Return absolute path listing of media_root_dir.
+    Return dict of lowercased absolute path to actual path in media_root_dir.
     """
     result = subprocess.run(
         ['ssh',
@@ -60,7 +60,7 @@ def get_media_set(server, media_root_dir):
         encoding='utf-8'
     )
     result.check_returncode()
-    return set(result.stdout.splitlines())
+    return {path.lower(): path for path in result.stdout.splitlines()}
 
 
 def all_chat_paths(data_orig_dir):
@@ -72,7 +72,7 @@ def all_chat_paths(data_orig_dir):
                 yield os.path.join(dir_path, file_name)
 
 
-def all_media_errors(data_orig_dir, media_root_dir, media_set):
+def all_media_errors(data_orig_dir, media_root_dir, media_dict):
     """
     Check media files for each CHAT file to make sure they exist in the right place.
     Yield
@@ -84,10 +84,10 @@ def all_media_errors(data_orig_dir, media_root_dir, media_set):
         with open(chat_path, encoding='utf-8') as f:
             text = f.read()
             relative_chat_path = chat_path.lstrip(data_orig_dir)
-            yield chat_doc_errors(relative_chat_path, text, media_root_dir, media_set)
+            yield chat_doc_errors(relative_chat_path, text, media_root_dir, media_dict)
 
 
-def chat_doc_errors(relative_chat_path, text, media_root_dir, media_set):
+def chat_doc_errors(relative_chat_path, text, media_root_dir, media_dict):
     """
     Check a single CHAT file, return list of errors found, [] if none.
     """
@@ -108,7 +108,12 @@ def chat_doc_errors(relative_chat_path, text, media_root_dir, media_set):
 
         relative_chat_dir = os.path.dirname(relative_chat_path)
         path = os.path.join(media_root_dir, relative_chat_dir, file)
-        if not(path in media_set):
+        lower_path = path.lower()
+        actual_path = media_dict.get(lower_path)
+        if actual_path:
+            if path != actual_path:
+                errors.append((f'incorrectly-cased {actual_path}', media_type, path))
+        else:
             errors.append(('missing', media_type, path))
 
     return errors
