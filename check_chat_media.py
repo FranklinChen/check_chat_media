@@ -54,6 +54,7 @@ def get_media_dict(server, media_root_dir):
         ['ssh',
          server,
          'find',
+         '-L',
          media_root_dir,
         ],
         stdout=subprocess.PIPE,
