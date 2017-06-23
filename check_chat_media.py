@@ -33,15 +33,20 @@ pic_re = re.compile(
 @click.option('--mediadir', required=True, help='Media root dir on host')
 def main(chatdir, host, mediadir):
     """
-    Print errors to stdout.
+    Print errors to stderr.
     """
+    chat_paths = list(all_chat_paths(chatdir))
+    if len(chat_paths) == 0:
+        print(f'{chatdir}: no .cha files found!', file=sys.stderr)
+        sys.exit(1)
+
     media_dict = get_media_dict(host, mediadir)
 
     num_errors = 0
-    for doc_errors in all_media_errors(chatdir, mediadir, media_dict):
+    for doc_errors in all_media_errors(chat_paths, chatdir, mediadir, media_dict):
         for message, media_type, name in doc_errors:
             num_errors += 1
-            print(f'{host}:{name}: {media_type} {message}')
+            print(f'{host}:{name}: {media_type} {message}', file=sys.stderr)
     if num_errors != 0:
         sys.exit(1)
 
@@ -73,13 +78,13 @@ def all_chat_paths(data_orig_dir):
                 yield os.path.join(dir_path, file_name)
 
 
-def all_media_errors(data_orig_dir, media_root_dir, media_dict):
+def all_media_errors(chat_paths, data_orig_dir, media_root_dir, media_dict):
     """
     Check media files for each CHAT file to make sure they exist in the right place.
     Yield
     TODO Could do in parallel using multiprocessing.
     """
-    for chat_path in all_chat_paths(data_orig_dir):
+    for chat_path in chat_paths:
         # Read whole file.
         # TODO Recover from file read failure.
         with open(chat_path, encoding='utf-8') as f:
