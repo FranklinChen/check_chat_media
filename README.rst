@@ -34,7 +34,11 @@ Usage
 
 ::
 
-    $ check_chat_media --chatdir ./talkbank-data --host talkbank.org --mediadir /TalkBank/media
+    $ check_chat_media --chatdir ../0talkbank-data --host talkbank.org --mediadir /TalkBank/media
+    $ check_chat_media --chatdir ../0childes-data --host childes.talkbank.org --mediadir /web/childes/media
+    $ check_chat_media --chatdir ../0fluency-data --host fluency.talkbank.org --mediadir /web/fluencybank/media
+    $ check_chat_media --chatdir ../0aphasia-data --host aphasia.talkbank.org --mediadir /TalkBank/Aphasia/media
+    $ check_chat_media --chatdir ../0phon-data --host phonbank.talkbank.org --mediadir /web/phonbank/media
 
 ::
 
